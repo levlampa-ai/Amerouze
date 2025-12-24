@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amerouze Bio</title>
+    <style>
+        /* --- БАЗА --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            perspective: 1000px;
+        }
+
+        /* --- 1. ПРЕЛОАДЕР --- */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            position: absolute;
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px #fff;
+        }
+        
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* --- 2. ФОН --- */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.6; /* Затемняем видео */
+            filter: grayscale(30%) contrast(1.2);
+        }
+
+        /* Холст для частиц */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- 3. ОВЕРЛЕЙ --- */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        
+        #overlay h1 {
+            color: #fff;
+            font-size: 2rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* --- 4. ТРЕУГОЛЬНИК (ГОЛОГРАММА) --- */
+        .triangle-wrap {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.3)); /* Неоновое свечение вокруг */
+            opacity: 0;
+            transform: scale(0.8) translateY(-50px);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        .triangle-shape {
+            width: 100%;
+            height: 100%;
+            /* Перевернутый треугольник */
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            background: rgba(15, 15, 20, 0.85); /* Темная подложка */
+            backdrop-filter: blur(15px);
+            
+            /* Градиентная рамка через inset box-shadow не сработает на clip-path, 
+               поэтому используем border внутри псевдоэлементов или просто фон */
+            background-image: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Эффект сканирующей линии внутри треугольника */
+        .triangle-shape::after {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, transparent, rgba(0, 255, 255, 0.2), transparent);
+            animation: hologram-scan 4s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes hologram-scan {
+            0% { top: -100%; }
+            100% { top: 200%; }
+        }
+
+        /* --- КОНТЕНТ ВНУТРИ --- */
+        
+        /* 1. Аватарка (Верх) */
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+            object-fit: cover;
+            z-index: 2;
+        }
+
+        /* 2. Ник (Чуть ниже) */
+        .nickname {
+            margin-top: 15px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, #a1a1a1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            z-index: 2;
+        }
+
+        /* 3. Описание (Сужается) */
+        .bio-lines {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            z-index: 2;
+        }
+
+        /* Строка 1: Возраст и Страна (Пошире) */
+        .line-1 {
+            font-size: 1.1rem;
+            color: #ccc;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 60%; /* Ограничиваем ширину */
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* Строка 2: Стек (Поуже) */
+        .line-2 {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: bold;
+            background: rgba(0, 200, 255, 0.15); /* Чуть синеватый фон */
+            padding: 6px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.3);
+            width: 40%; /* Еще уже */
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.2);
+        }
+
+        /* Декор в самом низу треугольника */
+        .bottom-dot {
+            margin-top: 30px;
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 20px cyan;
+            animation: pulse-dot 1.5s infinite;
+        }
+        
+        @keyframes pulse-dot { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* Вспомогательные */
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .visible { opacity: 1 !important; transform: scale(1) translateY(0) !important; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Прелоадер -->
+    <div id="loader">
+        <div class="scan-line"></div>
+    </div>
+
+    <!-- Фон: Видео -->
+    <video id="bg-video" loop muted playsinline>
+        <source src="https://www.dropbox.com/scl/fi/rq5s4jemyhrcbbokz7p42/bag.mp4?rlkey=6q0rrx421iwot9pvrk7pr8355&st=wg6u088i&raw=1" type="video/mp4">
+    </video>
+
+    <!-- Фон: Частицы -->
+    <canvas id="particles"></canvas>
+
+    <!-- Музыка -->
+    <audio id="bg-music" loop>
+        <source src="https://www.dropbox.com/scl/fi/8ouenvig8iao93l49r7r8/myz.mp3?rlkey=rqmfxmihssonunuu7fkmqyf84&st=ozxwx0vy&raw=1" type="audio/mpeg">
+    </audio>
+
+    <!-- Оверлей -->
+    <div id="overlay">
+        <h1>[ ВОЙТИ ]</h1>
+        <p style="color:#aaa; font-size: 0.8rem; margin-top:10px; letter-spacing: 2px;">SYSTEM SECURE</p>
+    </div>
+
+    <!-- Основной контент (Треугольник) -->
+    <div class="triangle-wrap" id="card">
+        <div class="triangle-shape">
+            
+            <!-- Аватарка -->
+            <img src="https://www.dropbox.com/scl/fi/0bcpkydad5uz030nw4po3/guf.gif?rlkey=2m6zt837tb10a5dedz3arejti&st=x701g7o1&raw=1" alt="Ava" class="avatar">
+            
+            <!-- Ник -->
+            <div class="nickname">Amerouze</div>
+            
+            <!-- Инфо (Пирамидкой) -->
+            <div class="bio-lines">
+                <!-- Широкая строка -->
+                <div class="line-1">
+                    <span>14 y.o</span> • <span>Russia 🇷🇺</span>
+                </div>
+                
+                <!-- Узкая строка -->
+                <div class="line-2">
+                    Python & JS
+                </div>
+                
+                <!-- Точка внизу -->
+                <div class="bottom-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loader = document.getElementById('loader');
+        const overlay = document.getElementById('overlay');
+        const card = document.getElementById('card');
+        const audio = document.getElementById('bg-music');
+        const video = document.getElementById('bg-video');
+        let isEntered = false;
+
+        // --- 1. Убираем загрузку ---
+        window.addEventListener('load', () => {
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 500);
+        });
+
+        // --- 2. Вход ---
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            audio.volume = 0.5;
+            audio.play().catch(console.error);
+            video.play();
+            
+            card.classList.add('visible');
+            isEntered = true;
+        });
+
+        // --- 3. 3D Наклон Треугольника ---
+        document.addEventListener('mousemove', (e) => {
+            if (!isEntered) return;
+            const x = (window.innerWidth / 2 - e.pageX) / 35;
+            const y = (window.innerHeight / 2 - e.pageY) / 35;
+            // Добавляем плавности и легкий наклон
+            card.style.transform = `rotateX(${y}deg) rotateY(${x}deg)`;
+        });
+
+        // --- 4. Частицы на фоне (Visuals) ---
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1; // Размер от 1 до 3
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                // Если улетел за край - возвращаем
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 50; i++) { // 50 частиц
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // Ресайз канваса при изменении окна
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>
