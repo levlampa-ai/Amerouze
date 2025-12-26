@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Amerouze Bio</title>
+    <style>
+        /* --- 1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ --- */
+        :root {
+            --bg-color: #050505;
+            --card-bg: #0f0f0f;
+            --border: rgba(255, 255, 255, 0.1);
+            --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+            --player-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            height: 100dvh; 
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-color);
+            color: #fff;
+            position: relative;
+        }
+
+        /* --- 2. ФОН --- */
+        #bg-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 0; opacity: 0.2; filter: grayscale(100%); pointer-events: none;
+        }
+        #seasonal-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        /* --- 3. ВХОД --- */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; cursor: pointer;
+            transition: opacity 0.8s var(--ease-smooth);
+        }
+        .enter-circle {
+            width: 70px; height: 70px; border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            animation: pulse-border 2s infinite; transition: transform 0.3s var(--ease-elastic);
+        }
+        .enter-circle:hover { transform: scale(1.1); background: rgba(255,255,255,0.05); }
+        .triangle-icon {
+            width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+            border-left: 10px solid #fff; margin-left: 4px;
+        }
+        @keyframes pulse-border {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- 4. КАРТОЧКА --- */
+        .interface-card {
+            width: 90%; 
+            max-width: 340px;
+            height: 85%; 
+            max-height: 660px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            position: relative; overflow: hidden;
+            opacity: 0; transform: scale(0.9) translateY(40px);
+            transition: transform 1s var(--ease-elastic), opacity 0.8s ease;
+            display: flex; flex-direction: column; z-index: 10;
+        }
+        .active-site .interface-card { opacity: 1; transform: scale(1) translateY(0); }
+
+        /* --- 5. КОНТЕНТ --- */
+        .content-area { 
+            flex: 1; position: relative; overflow: hidden; 
+        }
+        
+        .tab-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            padding-bottom: 150px; 
+            overflow-y: auto; scrollbar-width: none;
+            opacity: 0; pointer-events: none; visibility: hidden;
+            transform: scale(0.95); filter: blur(10px);
+            transition: all 0.5s ease;
+        }
+        .tab-layer::-webkit-scrollbar { display: none; }
+        
+        .tab-layer.active-tab { 
+            opacity: 1; pointer-events: all; visibility: visible;
+            transform: scale(1); filter: blur(0);
+        }
+
+        .active-site .cover-wrap { animation: cascadeUp 0.8s 0.1s backwards var(--ease-elastic); }
+        .active-site .profile-details { animation: cascadeUp 0.8s 0.2s backwards var(--ease-elastic); }
+        .active-site .dock-nav { animation: fadeInNav 0.8s 0.4s backwards ease; }
+
+        @keyframes cascadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInNav {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        /* --- ПРОФИЛЬ --- */
+        .cover-wrap {
+            flex: 1.2;
+            min-height: 0; width: 100%; position: relative; overflow: hidden;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .cover-img { width: 100%; height: 100%; object-fit: cover; }
+        .gradient-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
+            background: linear-gradient(to top, #0f0f0f 15%, transparent);
+        }
+        .profile-details {
+            flex-shrink: 0; padding: 0 20px 20px; margin-top: -40px;
+            position: relative; z-index: 2;
+            background: linear-gradient(to top, #0f0f0f 90%, transparent);
+        }
+        .nickname { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 4px; letter-spacing: -1px; }
+        .description { font-size: 12px; color: #aaa; line-height: 1.4; font-weight: 400; }
+
+        .gif-stats-row {
+            display: flex; gap: 10px; margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;
+            justify-content: space-between;
+        }
+        .gif-box { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 33%; cursor: pointer; }
+        .stat-gif {
+            width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: transform 0.3s;
+        }
+        .gif-box:hover .stat-gif { transform: scale(1.05); border-color: #fff; }
+        .stat-label { font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- СПИСОК ТРЕКОВ --- */
+        .section-title { padding: 30px 20px 15px; font-size: 22px; font-weight: 800; }
+        .list-container { padding: 0 15px; }
+        
+        .media-row {
+            position: relative;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 10px; border-radius: 8px;
+            margin-bottom: 2px;
+            transition: all 0.2s; cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .media-row:hover { background: rgba(255,255,255,0.03); }
+        
+        /* Активный трек */
+        .media-row.playing { 
+            background: rgba(255,255,255,0.04); 
+        }
+        .media-row.playing .track-title { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+        /* ЭФФЕКТ ЗЕБРЫ СНИЗУ */
+        .media-row.playing::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+            background: repeating-linear-gradient(
+                90deg,
+                #fff,
+                #fff 20px,
+                #000 20px,
+                #000 40px
+            );
+            background-size: 200% 100%;
+            animation: zebra-scroll 1.5s linear infinite;
+        }
+        @keyframes zebra-scroll {
+            0% { background-position: 0% 0; }
+            100% { background-position: -50px 0; }
+        }
+
+        .track-info-box { display: flex; flex-direction: column; }
+        .track-title { font-weight: 600; font-size: 13px; color: #888; transition: color 0.3s; }
+        .track-artist { color: #444; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+
+        /* --- НАВИГАЦИЯ --- */
+        .dock-nav {
+            position: absolute; bottom: 80px; 
+            left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; z-index: 50; padding: 4px;
+            background: rgba(30, 30, 30, 0.9); border-radius: 40px;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .nav-btn {
+            position: relative; background: transparent; border: none;
+            color: #888; font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; padding: 8px 18px; border-radius: 30px;
+            cursor: pointer; overflow: hidden; transition: color 0.3s;
+        }
+        .nav-btn span { position: relative; z-index: 2; }
+        
+        .nav-btn.active { color: #fff; }
+        .nav-btn.active::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(
+                #fff 0deg, #fff 45deg, #000 45deg, #000 90deg, 
+                #fff 90deg, #fff 135deg, #000 135deg, #000 180deg, 
+                #fff 180deg, #fff 225deg, #000 225deg, #000 270deg, 
+                #fff 270deg, #fff 315deg, #000 315deg, #000 360deg
+            );
+            animation: rotate-border 4s linear infinite; z-index: 0;
+        }
+        .nav-btn.active::after {
+            content: ''; position: absolute; inset: 2px;
+            background: #000; 
+            border-radius: 28px; z-index: 1;
+        }
+        @keyframes rotate-border { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+
+        /* --- КОМПАКТНЫЙ ПЛЕЕР --- */
+        #mini-player {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: var(--player-height);
+            background: rgba(15, 15, 15, 0.98); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 100;
+            transform: translateY(100%); transition: transform 0.5s var(--ease-elastic);
+        }
+        .active-site #mini-player { transform: translateY(0); }
+
+        .mp-info { display: flex; flex-direction: column; width: 50%; overflow: hidden; }
+        .mp-title { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mp-artist { font-size: 9px; color: #666; }
+
+        .mp-controls { display: flex; align-items: center; gap: 15px; }
+        
+        .viz-container {
+            display: flex; align-items: flex-end; gap: 2px; height: 15px; width: 25px;
+        }
+        .viz-bar {
+            width: 3px; background: #00ff9d; border-radius: 2px;
+            height: 3px; animation: none;
+        }
+        .playing .viz-bar { animation: soundBars 0.5s infinite alternate ease-in-out; }
+        .playing .viz-bar:nth-child(1) { animation-duration: 0.4s; }
+        .playing .viz-bar:nth-child(2) { animation-duration: 0.5s; }
+        .playing .viz-bar:nth-child(3) { animation-duration: 0.35s; }
+        .playing .viz-bar:nth-child(4) { animation-duration: 0.45s; }
+        @keyframes soundBars { 0% { height: 3px; opacity: 0.5; } 100% { height: 14px; opacity: 1; } }
+
+        .mp-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #fff; border: none; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            transition: transform 0.1s;
+        }
+        .mp-btn:active { transform: scale(0.9); }
+        
+        #mp-progress-bar {
+            position: absolute; top: -2px; left: 0; width: 100%; height: 2px;
+            background: transparent; cursor: pointer;
+        }
+        #mp-progress-fill { height: 100%; background: #00ff9d; width: 0%; transition: width 0.1s linear; }
+
+    </style>
+</head>
+<body>
+
+    <video id="bg-video" loop muted playsinline>
+        <source src="" type="video/mp4">
+    </video>
+
+    <canvas id="seasonal-canvas"></canvas>
+    <audio id="audio-player"></audio>
+
+    <div id="overlay">
+        <div class="enter-circle"><div class="triangle-icon"></div></div>
+        <p style="margin-top:15px; font-size:10px; letter-spacing:3px; color:#666;">TAP TO START</p>
+    </div>
+
+    <div class="interface-card">
+        
+        <div class="content-area">
+            
+            <!-- ВКЛАДКА 1: ПРОФИЛЬ -->
+            <div id="tab-profile" class="tab-layer active-tab">
+                <div class="cover-wrap">
+                    <img src="https://www.dropbox.com/scl/fi/01t03jkx1seats3y12kkn/2f555d4503e3e6118b8ffa9caa504d44.gif?rlkey=6m5fdtz4g2yhjcbp6gn8n99wc&st=8jtz2vh0&raw=1" class="cover-img" alt="Avatar">
+                    <div class="gradient-overlay"></div>
+                </div>
+                <div class="profile-details">
+                    <div class="nickname">Amerouze</div>
+                    <div class="description">
+                        Full-stack ambition.<br>
+                        Building the future 🇷🇺
+                    </div>
+                    <div class="gif-stats-row">
+                        <div class="gif-box">
+                            <img src="https://www.dropbox.com/scl/fi/xucelwyke62ojh97fwisx/11eaa9313cb53b6b89df1423c098cf34.gif?rlkey=cjypon7psqzfuwhxmigfaqor1&e=1&st=krfzzdx4&raw=1" class="stat-gif">
+                            <span class="stat-label">aio 14</span>
+                        </div>
+                        <div class="gif-box">
+                            <img src="https://www.dropbox.com/scl/fi/ulth073xtojwzzxiy3cgl/5473a2343d6b3d0bfba584b3f877c287.gif?rlkey=gu9uyc5rjm26851bhrcvmkyce&st=ggn5czjq&raw=1" class="stat-gif">
+                            <span class="stat-label">python js</span>
+                        </div>
+                        <div class="gif-box">
+                            <img src="https://www.dropbox.com/scl/fi/o921zybwk5bxob005tts1/049ba9a97f35b0df310ba3789ab02fcf.gif?rlkey=7hcwb7r2cb6kb9tn51vl5hu8g&e=1&st=mbf10znt&raw=1" class="stat-gif">
+                            <span class="stat-label">Russian</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ВКЛАДКА 2: СПИСОК МУЗЫКИ -->
+            <div id="tab-music" class="tab-layer">
+                <div class="section-title">Playlist</div>
+                <div class="list-container" id="playlist-container"></div>
+            </div>
+
+        </div>
+
+        <!-- НАВИГАЦИЯ (Переключатель) -->
+        <div class="dock-nav">
+            <button class="nav-btn active" onclick="switchTab('tab-profile', this)"><span>Profile</span></button>
+            <button class="nav-btn" onclick="switchTab('tab-music', this)"><span>List</span></button>
+        </div>
+
+        <!-- КОМПАКТНЫЙ ПЛЕЕР (ВСЕГДА ВИДЕН) -->
+        <div id="mini-player">
+            <div id="mp-progress-bar" onclick="seekAudio(event)">
+                <div id="mp-progress-fill"></div>
+            </div>
+
+            <div class="mp-info">
+                <div class="mp-title" id="mp-title">Select Track</div>
+                <div class="mp-artist" id="mp-artist">...</div>
+            </div>
+
+            <div class="mp-controls">
+                <div class="viz-container" id="viz-container">
+                    <div class="viz-bar"></div>
+                    <div class="viz-bar"></div>
+                    <div class="viz-bar"></div>
+                    <div class="viz-bar"></div>
+                </div>
+
+                <button class="mp-btn" onclick="togglePlay()">
+                    <div class="icon-play" id="mp-play-icon"></div>
+                    <div class="icon-pause" id="mp-pause-icon" style="display:none; width:8px; height:10px; border-left:3px solid #000; border-right:3px solid #000;"></div>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const overlay = document.getElementById('overlay');
+        const bgVideo = document.getElementById('bg-video');
+        const audio = document.getElementById('audio-player');
+        
+        const mpTitle = document.getElementById('mp-title');
+        const mpArtist = document.getElementById('mp-artist');
+        const mpPlayIcon = document.getElementById('mp-play-icon');
+        const mpPauseIcon = document.getElementById('mp-pause-icon');
+        const vizContainer = document.getElementById('viz-container');
+        const progressFill = document.getElementById('mp-progress-fill');
+        const progressBar = document.getElementById('mp-progress-bar');
+
+        /* --- ПЛЕЙЛИСТ (НОВЫЙ) --- */
+        // ОБЯЗАТЕЛЬНО ЗАГРУЗИ ФАЙЛЫ В ПАПКУ music С ЭТИМИ ИМЕНАМИ:
+        const playlist = [
+            { title: "Boom, Boom, Boom, Boom!!", artist: "Zak Conner", url: "music/boom.mp3" },
+            { title: "Boys Don't Cry", artist: "The Cure", url: "music/boys.mp3" },
+            { title: "Creep", artist: "Radiohead", url: "music/creep.mp3" },
+            { title: "Unslept 0:00", artist: "Miraidempa", url: "music/unslept.mp3" }
+        ];
+
+        let currentTrackIndex = -1;
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 0);
+        const dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+        const dailyIndex = dayOfYear % playlist.length;
+        
+        const container = document.getElementById('playlist-container');
+        playlist.forEach((track, index) => {
+            const isDaily = (index === dailyIndex);
+            const div = document.createElement('div');
+            div.className = `media-row`;
+            div.id = `track-${index}`;
+            div.onclick = () => playTrack(index);
+            div.innerHTML = `
+                <div class="track-info-box">
+                    <div class="track-title">${track.title} ${isDaily ? '<span style="color:#00ff9d; font-size:9px; vertical-align:super;">DAILY</span>' : ''}</div>
+                    <div class="track-artist">${track.artist}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        /* --- ЛОГИКА --- */
+        function playTrack(index) {
+            if(currentTrackIndex !== -1) document.getElementById(`track-${currentTrackIndex}`).classList.remove('playing');
+            if(currentTrackIndex === index) { togglePlay(); return; }
+
+            currentTrackIndex = index;
+            document.getElementById(`track-${index}`).classList.add('playing');
+            mpTitle.innerText = playlist[index].title;
+            mpArtist.innerText = playlist[index].artist;
+            
+            // Если файл не найден (пока не загрузил), выводим ошибку в консоль
+            audio.src = playlist[index].url;
+            audio.volume = 0.6;
+            audio.play().catch(e => console.log("Audio play error: ", e));
+            
+            updatePlayState(true);
+        }
+
+        function togglePlay() {
+            if(!audio.src) return;
+            if (audio.paused) { audio.play(); updatePlayState(true); } 
+            else { audio.pause(); updatePlayState(false); }
+        }
+
+        function updatePlayState(isPlaying) {
+            if(isPlaying) {
+                mpPlayIcon.style.display = 'none';
+                mpPauseIcon.style.display = 'block';
+                vizContainer.classList.add('playing');
+            } else {
+                mpPlayIcon.style.display = 'block';
+                mpPauseIcon.style.display = 'none';
+                vizContainer.classList.remove('playing');
+            }
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                progressFill.style.width = percent + '%';
+            }
+        });
+
+        function seekAudio(e) {
+            if(!audio.duration) return;
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            audio.currentTime = (clickX / rect.width) * audio.duration;
+        }
+
+        overlay.addEventListener('click', () => {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 800);
+            if(bgVideo.querySelector('source') && bgVideo.querySelector('source').src) bgVideo.play().catch(()=>{});
+            playTrack(dailyIndex);
+            document.body.classList.add('active-site');
+        });
+
+        function switchTab(tabId, btn) {
+            if(btn.classList.contains('active')) return;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-layer').forEach(t => t.classList.remove('active-tab'));
+            document.getElementById(tabId).classList.add('active-tab');
+        }
+
+        /* --- STARFIELD EFFECT --- */
+        const canvas = document.getElementById('seasonal-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let stars = [];
+        const starCount = 300; 
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initStars();
+        }
+
+        class Star {
+            constructor() { this.reset(true); }
+            reset(initial = false) {
+                this.x = (Math.random() - 0.5) * width;
+                this.y = (Math.random() - 0.5) * height;
+                this.z = initial ? Math.random() * width : width;
+            }
+            update() {
+                this.z -= 5; 
+                if (this.z <= 0) this.reset();
+            }
+            draw() {
+                let sx = (this.x / this.z) * width + width / 2;
+                let sy = (this.y / this.z) * height + height / 2;
+                let size = (1 - this.z / width) * 2.5;
+                let alpha = (1 - this.z / width);
+                if (sx < 0 || sx > width || sy < 0 || sy > height) { this.reset(); return; }
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(sx, sy, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < starCount; i++) stars.push(new Star());
+        }
+
+        function animate() {
+            ctx.fillStyle = "rgba(5, 5, 5, 0.3)";
+            ctx.fillRect(0, 0, width, height);
+            for (let star of stars) { star.update(); star.draw(); }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        animate();
+    </script>
+</body>
+</html>
