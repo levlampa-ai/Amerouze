@@ -7,16 +7,13 @@
     <style>
         :root {
             --bg-color: #050505;
-            
-            /* ЭКСТРЕМАЛЬНАЯ ПРОЗРАЧНОСТЬ (5% черного) */
             --glass: rgba(0, 0, 0, 0.05); 
-            
-            /* Границы чуть ярче, чтобы держать форму */
             --border: rgba(255, 255, 255, 0.15);
-            
             --text-main: #ffffff;
-            --text-dim: #cccccc; /* Текст ярче, чтобы читался на пестром фоне */
+            --text-dim: #cccccc;
             --radius: 25px;
+            /* Пружина для анимации */
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,17 +27,14 @@
             justify-content: center;
             align-items: center;
             padding: 15px;
-            
-            /* Усиленная тень текста для читаемости на любом фоне */
             text-shadow: 0 2px 8px rgba(0,0,0,1); 
             position: relative;
+            overflow-x: hidden;
         }
 
         /* --- ФОНОВЫЙ СЛОЙ --- */
         .bg-layer {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -2;
             background-image: url('images/bg.gif'); 
             background-size: cover; 
@@ -48,17 +42,14 @@
             background-repeat: no-repeat;
         }
 
-        /* ЗАТЕМНЕНИЕ (Минимальное, чтобы фон был ярким) */
+        /* ЗАТЕМНЕНИЕ */
         .overlay-layer {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.15); /* Всего 15% затемнения */
-            z-index: -1;
-            pointer-events: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.15); 
+            z-index: -1; pointer-events: none;
         }
 
-        /* --- СЕТКА --- */
+        /* --- СЕТКА (СТРОГО 2x2) --- */
         .layout-grid {
             width: 100%;
             max-width: 500px;
@@ -71,35 +62,57 @@
                 "gif    info";
         }
 
+        /* --- АНИМАЦИИ (Вылет) --- */
+        @keyframes dynamicLeft {
+            0% { opacity: 0; transform: translateX(-50px) scale(0.9); filter: blur(5px); }
+            100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+        }
+        @keyframes dynamicTop {
+            0% { opacity: 0; transform: translateY(-50px) scale(0.9); filter: blur(5px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        @keyframes dynamicBottom {
+            0% { opacity: 0; transform: translateY(50px) scale(0.9); filter: blur(5px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        @keyframes dynamicRight {
+            0% { opacity: 0; transform: translateX(50px) scale(0.9); filter: blur(5px); }
+            100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+        }
+
         /* --- СТИЛЬ БЛОКОВ --- */
         .box {
             background: var(--glass);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            
-            /* Легкое размытие, чтобы отделить текст от фона */
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            
             overflow: hidden;
-            /* Убрал тень блоков, чтобы они были плоскими и легкими */
-            box-shadow: none; 
+            
+            opacity: 0; /* Скрыто до старта */
+            
+            /* Настройки анимации */
+            animation-duration: 0.8s;
+            animation-timing-function: var(--spring);
+            animation-fill-mode: forwards;
+            
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .box:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         /* 1. АВАТАР */
-        .area-avatar {
-            grid-area: avatar;
-            padding: 0;
-        }
+        .area-avatar { grid-area: avatar; padding: 0; animation-name: dynamicLeft; animation-delay: 0.1s; }
         .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 
         /* 2. ШАПКА */
         .area-header {
             grid-area: header;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 20px;
+            display: flex; flex-direction: column; justify-content: center; padding: 0 20px;
+            animation-name: dynamicTop; animation-delay: 0.2s;
         }
         .nickname { 
             font-size: 26px; font-weight: 800; color: #fff; 
@@ -107,42 +120,35 @@
         }
         .status { 
             font-size: 10px; color: #fff; margin-top: 5px; 
-            display: flex; align-items: center; gap: 6px; font-weight: bold;
-            opacity: 0.9;
+            display: flex; align-items: center; gap: 6px; font-weight: bold; opacity: 0.9;
         }
         .dot { width: 6px; height: 6px; background: #00ff9d; border-radius: 50%; box-shadow: 0 0 5px #00ff9d; }
 
         /* 3. ГИФКА */
         .area-gif {
-            grid-area: gif;
-            position: relative;
-            min-height: 250px;
+            grid-area: gif; position: relative; min-height: 250px;
+            animation-name: dynamicBottom; animation-delay: 0.3s;
         }
         .main-gif-img {
             width: 100%; height: 100%; 
-            object-fit: cover;
+            object-fit: cover; /* Заполнение */
             position: absolute; top:0; left:0;
         }
 
         /* 4. ИНФО */
         .area-info {
-            grid-area: info;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            grid-area: info; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px;
+            animation-name: dynamicRight; animation-delay: 0.4s;
         }
 
         /* Бейджи */
         .badges-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 5px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
         }
         .badge {
             aspect-ratio: 1/1;
-            /* Фон бейджа почти прозрачный */
-            background: rgba(255,255,255,0.03); 
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
@@ -157,19 +163,47 @@
             font-size: 12px;
             color: #fff;
             line-height: 1.5;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            display: flex; flex-direction: column; gap: 5px;
             font-weight: 500;
+            font-family: Arial, sans-serif;
         }
         .bio-text span { display: block; }
 
-        /* Адаптация */
+        /* --- СОЦ СЕТИ С ИКОНКАМИ --- */
+        .social-links {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .social-btn {
+            flex: 1;
+            /* Добавил Flexbox чтобы иконка и текст были по центру */
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 6px; /* Расстояние между картинкой и текстом */
+            
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 0;
+            color: #fff;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: bold;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .social-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+        }
+        /* Размер иконок */
+        .social-icon {
+            width: 14px; 
+            height: 14px; 
+            object-fit: contain;
+        }
+
         @media (max-width: 400px) {
-            .layout-grid { 
-                grid-template-columns: 100px 1fr; 
-                grid-template-rows: 100px auto; 
-            }
+            .layout-grid { grid-template-columns: 100px 1fr; grid-template-rows: 100px auto; }
             .nickname { font-size: 20px; }
             .area-info { padding: 15px; }
         }
@@ -181,35 +215,28 @@
     <div class="overlay-layer"></div>
 
     <div class="layout-grid">
-        
-        <!-- 1. АВАТАР -->
+        <!-- 1 -->
         <div class="box area-avatar">
             <img src="images/avatar.jpg" class="avatar-img" alt="Avatar">
         </div>
-
-        <!-- 2. НИК -->
+        <!-- 2 -->
         <div class="box area-header">
             <div class="nickname">Amerouze</div>
             <div class="status"><span class="dot"></span> ONLINE</div>
         </div>
-
-        <!-- 3. ГИФКА -->
+        <!-- 3 -->
         <div class="box area-gif">
             <img src="images/showcase.gif" class="main-gif-img" alt="Showcase" onerror="this.style.display='none'">
         </div>
-
-        <!-- 4. ИНФО -->
+        <!-- 4 -->
         <div class="box area-info">
-            
             <div class="badges-container">
-                <div class="badge"><img src="images/badge1.png" alt="1"></div>
-                <div class="badge"><img src="images/badge2.png" alt="2"></div>
-                <div class="badge"><img src="images/badge3.png" alt="3"></div>
-                <div class="badge"><img src="images/badge4.png" alt="4"></div>
+                <div class="badge"><img src="images/badge1.png"></div>
+                <div class="badge"><img src="images/badge2.png"></div>
+                <div class="badge"><img src="images/badge3.png"></div>
+                <div class="badge"><img src="images/badge4.png"></div>
             </div>
-
             <div class="divider"></div>
-
             <div class="bio-text">
                 <span>My name ???</span>
                 <span>my game face (alias) Amerouze</span>
@@ -218,9 +245,27 @@
                 <span>Playing novels and old games</span>
                 <span>I live in Russia</span>
             </div>
+            
+            <div class="divider"></div>
+            <div class="social-links">
+                <!-- Telegram -->
+                <a href="https://t.me/Amerouze" target="_blank" class="social-btn">
+                    <img src="images/tg.png" class="social-icon" alt="TG">
+                    <span>Telegram</span>
+                </a>
+                <!-- Discord -->
+                <a href="https://discordapp.com/users/931809852467073035" target="_blank" class="social-btn">
+                    <img src="images/ds.png" class="social-icon" alt="DS">
+                    <span>Discord</span>
+                </a>
+                <!-- SoundCloud -->
+                <a href="https://on.soundcloud.com/3seUpfe7NGI4tsTwzm" target="_blank" class="social-btn">
+                    <img src="images/sc.png" class="social-icon" alt="SC">
+                    <span>SoundCloud</span>
+                </a>
+            </div>
 
         </div>
-
     </div>
 
 </body>
