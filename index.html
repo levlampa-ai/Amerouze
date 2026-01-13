@@ -50,7 +50,7 @@
             width: 100%;
             max-width: 500px;
             display: grid;
-            /* ИЗМЕНЕНИЕ: Было 120px, стало 170px. Левая часть стала шире. */
+            /* ЛЕВАЯ КОЛОНКА ШИРЕ (170px), чтобы гифка влезала */
             grid-template-columns: 170px 1fr;
             grid-template-rows: 120px auto;
             gap: 12px;
@@ -123,7 +123,6 @@
         .main-gif-img {
             width: 100%; height: 100%; 
             object-fit: cover; 
-            /* Вернул по центру, так как блок теперь шире */
             object-position: center center;
             position: absolute; top:0; left:0;
         }
@@ -191,7 +190,6 @@
         }
 
         @media (max-width: 400px) {
-            /* На мобильных тоже немного расширил пропорции */
             .layout-grid { grid-template-columns: 120px 1fr; grid-template-rows: 100px auto; }
             .nickname { font-size: 20px; }
             .area-info { padding: 15px; }
