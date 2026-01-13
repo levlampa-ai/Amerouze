@@ -12,7 +12,6 @@
             --text-main: #ffffff;
             --text-dim: #cccccc;
             --radius: 25px;
-            /* Пружина для анимации */
             --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
 
@@ -32,7 +31,6 @@
             overflow-x: hidden;
         }
 
-        /* --- ФОНОВЫЙ СЛОЙ --- */
         .bg-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -2;
@@ -42,19 +40,18 @@
             background-repeat: no-repeat;
         }
 
-        /* ЗАТЕМНЕНИЕ */
         .overlay-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.15); 
             z-index: -1; pointer-events: none;
         }
 
-        /* --- СЕТКА (СТРОГО 2x2) --- */
         .layout-grid {
             width: 100%;
             max-width: 500px;
             display: grid;
-            grid-template-columns: 120px 1fr;
+            /* ИЗМЕНЕНИЕ: Было 120px, стало 170px. Левая часть стала шире. */
+            grid-template-columns: 170px 1fr;
             grid-template-rows: 120px auto;
             gap: 12px;
             grid-template-areas:
@@ -62,7 +59,6 @@
                 "gif    info";
         }
 
-        /* --- АНИМАЦИИ (Вылет) --- */
         @keyframes dynamicLeft {
             0% { opacity: 0; transform: translateX(-50px) scale(0.9); filter: blur(5px); }
             100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
@@ -80,7 +76,6 @@
             100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
         }
 
-        /* --- СТИЛЬ БЛОКОВ --- */
         .box {
             background: var(--glass);
             border: 1px solid var(--border);
@@ -88,14 +83,10 @@
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             overflow: hidden;
-            
-            opacity: 0; /* Скрыто до старта */
-            
-            /* Настройки анимации */
+            opacity: 0;
             animation-duration: 0.8s;
             animation-timing-function: var(--spring);
             animation-fill-mode: forwards;
-            
             transition: transform 0.3s, border-color 0.3s;
         }
 
@@ -131,7 +122,9 @@
         }
         .main-gif-img {
             width: 100%; height: 100%; 
-            object-fit: cover; /* Заполнение */
+            object-fit: cover; 
+            /* Вернул по центру, так как блок теперь шире */
+            object-position: center center;
             position: absolute; top:0; left:0;
         }
 
@@ -142,7 +135,6 @@
             animation-name: dynamicRight; animation-delay: 0.4s;
         }
 
-        /* Бейджи */
         .badges-container {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
         }
@@ -158,7 +150,6 @@
 
         .divider { height: 1px; background: rgba(255,255,255,0.1); width: 100%; }
 
-        /* ТЕКСТ */
         .bio-text {
             font-size: 12px;
             color: #fff;
@@ -169,18 +160,16 @@
         }
         .bio-text span { display: block; }
 
-        /* --- СОЦ СЕТИ С ИКОНКАМИ --- */
+        /* СОЦ СЕТИ */
         .social-links {
             display: flex; gap: 8px; flex-wrap: wrap;
         }
         .social-btn {
             flex: 1;
-            /* Добавил Flexbox чтобы иконка и текст были по центру */
             display: flex; 
             align-items: center; 
             justify-content: center;
-            gap: 6px; /* Расстояние между картинкой и текстом */
-            
+            gap: 6px;
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -195,7 +184,6 @@
             background: rgba(255,255,255,0.1);
             border-color: rgba(255,255,255,0.3);
         }
-        /* Размер иконок */
         .social-icon {
             width: 14px; 
             height: 14px; 
@@ -203,7 +191,8 @@
         }
 
         @media (max-width: 400px) {
-            .layout-grid { grid-template-columns: 100px 1fr; grid-template-rows: 100px auto; }
+            /* На мобильных тоже немного расширил пропорции */
+            .layout-grid { grid-template-columns: 120px 1fr; grid-template-rows: 100px auto; }
             .nickname { font-size: 20px; }
             .area-info { padding: 15px; }
         }
@@ -250,17 +239,17 @@
             <div class="social-links">
                 <!-- Telegram -->
                 <a href="https://t.me/Amerouze" target="_blank" class="social-btn">
-                    <img src="images/tg.png" class="social-icon" alt="TG">
+                    <img src="images/tg.jpg" class="social-icon" alt="TG">
                     <span>Telegram</span>
                 </a>
                 <!-- Discord -->
                 <a href="https://discordapp.com/users/931809852467073035" target="_blank" class="social-btn">
-                    <img src="images/ds.png" class="social-icon" alt="DS">
+                    <img src="images/ds.jpg" class="social-icon" alt="DS">
                     <span>Discord</span>
                 </a>
                 <!-- SoundCloud -->
                 <a href="https://on.soundcloud.com/3seUpfe7NGI4tsTwzm" target="_blank" class="social-btn">
-                    <img src="images/sc.png" class="social-icon" alt="SC">
+                    <img src="images/sc.jpg" class="social-icon" alt="SC">
                     <span>SoundCloud</span>
                 </a>
             </div>
