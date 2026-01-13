@@ -7,10 +7,15 @@
     <style>
         :root {
             --bg-color: #050505;
-            --glass: rgba(10, 10, 10, 0.4); 
+            
+            /* ЭКСТРЕМАЛЬНАЯ ПРОЗРАЧНОСТЬ (5% черного) */
+            --glass: rgba(0, 0, 0, 0.05); 
+            
+            /* Границы чуть ярче, чтобы держать форму */
             --border: rgba(255, 255, 255, 0.15);
+            
             --text-main: #ffffff;
-            --text-dim: #999999;
+            --text-dim: #cccccc; /* Текст ярче, чтобы читался на пестром фоне */
             --radius: 25px;
         }
 
@@ -25,32 +30,30 @@
             justify-content: center;
             align-items: center;
             padding: 15px;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+            
+            /* Усиленная тень текста для читаемости на любом фоне */
+            text-shadow: 0 2px 8px rgba(0,0,0,1); 
             position: relative;
         }
 
-        /* --- НОВЫЙ ФОНОВЫЙ СЛОЙ (ИСПРАВЛЯЕТ ЗУМ) --- */
+        /* --- ФОНОВЫЙ СЛОЙ --- */
         .bg-layer {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: -2;
-            
-            /* ТВОЯ ГИФКА */
             background-image: url('images/bg.gif'); 
-            
-            /* Важно: cover заполняет экран, но не зумит лишнего */
             background-size: cover; 
             background-position: center center;
             background-repeat: no-repeat;
         }
 
-        /* ЗАТЕМНЕНИЕ (ЧТОБЫ ТЕКСТ ЧИТАЛСЯ) */
+        /* ЗАТЕМНЕНИЕ (Минимальное, чтобы фон был ярким) */
         .overlay-layer {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); /* 40% темноты */
+            background: rgba(0, 0, 0, 0.15); /* Всего 15% затемнения */
             z-index: -1;
             pointer-events: none;
         }
@@ -63,7 +66,6 @@
             grid-template-columns: 120px 1fr;
             grid-template-rows: 120px auto;
             gap: 12px;
-            
             grid-template-areas:
                 "avatar header"
                 "gif    info";
@@ -74,10 +76,14 @@
             background: var(--glass);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            
+            /* Легкое размытие, чтобы отделить текст от фона */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            /* Убрал тень блоков, чтобы они были плоскими и легкими */
+            box-shadow: none; 
         }
 
         /* 1. АВАТАР */
@@ -100,12 +106,13 @@
             text-transform: uppercase; letter-spacing: 1px;
         }
         .status { 
-            font-size: 10px; color: #ccc; margin-top: 5px; 
+            font-size: 10px; color: #fff; margin-top: 5px; 
             display: flex; align-items: center; gap: 6px; font-weight: bold;
+            opacity: 0.9;
         }
         .dot { width: 6px; height: 6px; background: #00ff9d; border-radius: 50%; box-shadow: 0 0 5px #00ff9d; }
 
-        /* 3. ГИФКА (СЛЕВА НИЗ) */
+        /* 3. ГИФКА */
         .area-gif {
             grid-area: gif;
             position: relative;
@@ -117,7 +124,7 @@
             position: absolute; top:0; left:0;
         }
 
-        /* 4. ИНФО (СПРАВА НИЗ) */
+        /* 4. ИНФО */
         .area-info {
             grid-area: info;
             padding: 20px;
@@ -126,7 +133,7 @@
             gap: 15px;
         }
 
-        /* --- БЕЙДЖИ (4 В РЯД) --- */
+        /* Бейджи */
         .badges-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr); 
@@ -134,7 +141,8 @@
         }
         .badge {
             aspect-ratio: 1/1;
-            background: rgba(255,255,255,0.08);
+            /* Фон бейджа почти прозрачный */
+            background: rgba(255,255,255,0.03); 
             border: 1px solid var(--border);
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
@@ -142,12 +150,12 @@
         }
         .badge img { width: 100%; height: 100%; object-fit: cover; }
 
-        .divider { height: 1px; background: var(--border); width: 100%; }
+        .divider { height: 1px; background: rgba(255,255,255,0.1); width: 100%; }
 
-        /* ТЕКСТ БИО */
+        /* ТЕКСТ */
         .bio-text {
             font-size: 12px;
-            color: #eee;
+            color: #fff;
             line-height: 1.5;
             display: flex;
             flex-direction: column;
@@ -156,7 +164,7 @@
         }
         .bio-text span { display: block; }
 
-        /* --- АДАПТАЦИЯ (ТЕЛЕФОН) --- */
+        /* Адаптация */
         @media (max-width: 400px) {
             .layout-grid { 
                 grid-template-columns: 100px 1fr; 
@@ -169,7 +177,6 @@
 </head>
 <body>
 
-    <!-- ОТДЕЛЬНЫЙ СЛОЙ ФОНА (Чтобы не зумился криво) -->
     <div class="bg-layer"></div>
     <div class="overlay-layer"></div>
 
@@ -194,7 +201,6 @@
         <!-- 4. ИНФО -->
         <div class="box area-info">
             
-            <!-- 4 Бейджа в ряд -->
             <div class="badges-container">
                 <div class="badge"><img src="images/badge1.png" alt="1"></div>
                 <div class="badge"><img src="images/badge2.png" alt="2"></div>
@@ -204,7 +210,6 @@
 
             <div class="divider"></div>
 
-            <!-- Текст -->
             <div class="bio-text">
                 <span>My name ???</span>
                 <span>my game face (alias) Amerouze</span>
