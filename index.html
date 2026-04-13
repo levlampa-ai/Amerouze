@@ -28,6 +28,7 @@
             overflow: hidden;
         }
 
+        /* --- ЭКРАН ВХОДА --- */
         #enter-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -65,6 +66,7 @@
             100% { transform: scale(1); opacity: 0.6; }
         }
 
+        /* --- ОСНОВНОЙ КОНТЕНТ --- */
         #main-wrapper {
             display: flex;
             justify-content: center;
@@ -74,7 +76,6 @@
             transition: filter 1.2s ease;
         }
 
-        /* ИСПРАВЛЕН ПУТЬ НА images/ */
         .bg-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -2;
@@ -121,14 +122,34 @@
 
         .nickname { font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
         
+        /* --- ГРАДИЕНТ "ДЫХАНИЕ ДРАКОНА" --- */
         .status-custom { 
-            font-size: 12px; 
+            font-size: 13px; 
             margin-top: 6px; 
             font-weight: 800; 
-            color: #ff3333;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+            letter-spacing: 2px;
+            
+            background: linear-gradient(90deg, #ff4500, #ffa500, #ffff00, #ffa500, #ff4500);
+            background-size: 300% auto; 
+            
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent; 
+            
+            animation: dragonsBreath 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 3px rgba(255, 140, 0, 0.7)); 
+        }
+
+        @keyframes dragonsBreath {
+            0%, 100% {
+                background-position: 0% 0%;
+                filter: drop-shadow(0 0 3px rgba(255, 140, 0, 0.7));
+            }
+            50% {
+                background-position: 100% 0%;
+                filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9)); 
+            }
         }
 
         .area-info {
@@ -137,8 +158,12 @@
         }
 
         .bio-text { font-size: 13px; color: #ddd; line-height: 1.6; }
+        .bio-text p { margin-bottom: 4px; }
+        .bio-text p:last-child { margin-bottom: 0; }
+        
         .divider { height: 1px; background: rgba(255,255,255,0.1); width: 100%; }
 
+        /* ПЛЕЕР */
         .music-player {
             display: flex; align-items: center; gap: 15px;
             background: rgba(255, 255, 255, 0.05); padding: 12px 18px;
@@ -196,23 +221,21 @@
         <div class="overlay-layer"></div>
 
         <div class="layout-grid">
-            <!-- ИСПРАВЛЕНЫ ПУТИ НА images/ -->
             <div class="box area-avatar"><img src="images/avatar.jpg" class="fill-img"></div>
             
             <div class="box area-header">
                 <div class="nickname">AMEROUZE</div>
-                <div class="status-custom">damoni dota</div>
+                <div class="status-custom">YUREI</div>
             </div>
 
-            <!-- ИСПРАВЛЕНЫ ПУТИ НА images/ -->
             <div class="box area-tall-pic"><img src="images/side-image.gif" class="fill-img"></div>
 
             <div class="box area-info">
                 <div class="bio-text">
-                    <p><b>Name:</b> ???</p>
-                    <p><b>Alias:</b> Amerouze</p>
-                    <p><b>Age:</b> 14 y.o.</p>
-                    <p><b>From:</b> Russia</p>
+                    <p><b>Имя:</b> ???</p>
+                    <p><b>Возраст:</b> 14-15</p>
+                    <p><b>Расположенность:</b> HTML/PYTHON</p>
+                    <p><b>Увлечение:</b> Просмотр ЭЭАНИМЕ, ФУРРИ ГЕЙ ПАТИ, МОДА</p>
                 </div>
                 <div class="divider"></div>
 
